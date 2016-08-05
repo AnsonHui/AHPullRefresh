@@ -3,6 +3,9 @@
 Extension UIScrollView.
 Add pull down refresh and pull up refresh.
 
+## 屏幕截图
+![image](https://github.com/AnsonHui/AHPullRefresh/blob/master/Screenshot/Screenshot.gif)
+
 ## Usage
 
 ```swift
