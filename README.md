@@ -1,7 +1,8 @@
 ## AHPullRefresh
 
 Extension UIScrollView.
-Add pull down refresh and pull up refresh.
+对UIScrollView进行扩展，支持上拉刷新和下拉刷新，支持自定义View实现上拉和下拉的动画，支持UITableView和UICollectionView。
+
 
 ## 屏幕截图
 ![image](https://github.com/AnsonHui/AHPullRefresh/blob/master/Screenshot/Screenshot.gif)
