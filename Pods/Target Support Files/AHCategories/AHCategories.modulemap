@@ -1,0 +1,6 @@
+framework module AHCategories {
+  umbrella header "AHCategories-umbrella.h"
+
+  export *
+  module * { export * }
+}

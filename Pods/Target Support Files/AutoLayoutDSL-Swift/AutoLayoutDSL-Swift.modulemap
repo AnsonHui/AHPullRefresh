@@ -1,0 +1,6 @@
+framework module AutoLayoutDSL_Swift {
+  umbrella header "AutoLayoutDSL-Swift-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -1,0 +1,13 @@
+PODS:
+  - AHCategories (1.0.0)
+  - AutoLayoutDSL-Swift (1.0.1)
+
+DEPENDENCIES:
+  - AHCategories
+  - AutoLayoutDSL-Swift (~> 1.0.1)
+
+SPEC CHECKSUMS:
+  AHCategories: 5bb6055ee8f1fed717448a6f659304aebdc855f4
+  AutoLayoutDSL-Swift: ed6c0bd470e53bfedf7e8532ef02d780284706ec
+
+COCOAPODS: 0.39.0
