@@ -26,7 +26,7 @@ private var kPointerShowBottomRefresh = 11
 private var kPointerBottomRefreshBlock = 12
 private var kPointerBottomRefreshState = 14
 private var kPointerBottomRefreshCurrentCustomView = 15
-private var kPointerBottomRefreshMode = 16 // 手动上拉刷新 / 自动上拉刷新
+private var kPointerBottomRefreshMode = 16 // 手动上拉刷新 OR 自动上拉刷新
 
 private var kTimeEndRefreshAnimation: NSTimeInterval = 0.3
 
@@ -69,7 +69,7 @@ public enum AHBottomRefreshMode: Int {
 }
 
 // MARK: - 下拉刷新扩展
-extension UIScrollView {
+public extension UIScrollView {
 
     /**
      * 下拉刷新的各个状态的View
@@ -125,7 +125,7 @@ extension UIScrollView {
     /**
      * 是否要显示下拉刷新
      */
-    var showTopRefresh: Bool {
+    public var showTopRefresh: Bool {
         get {
             var number = (objc_getAssociatedObject(self, &kPointerShowTopRefresh) as? NSNumber)
             if let obj = number {
@@ -165,7 +165,7 @@ extension UIScrollView {
         }
     }
 
-    func setCustomViewForTopRefreshState(view: UIView!, forState state: AHTopRefreshViewState) {
+    public func setCustomViewForTopRefreshState(view: UIView!, forState state: AHTopRefreshViewState) {
         let customViewArray = self.topRefreshViewsForState
         
         view.clipsToBounds = true
@@ -175,12 +175,12 @@ extension UIScrollView {
     /**
      * 添加下拉刷新的block
      */
-    func addTopRefreshBlock(refreshBlock: dispatch_block_t!) -> Void {
+    public func addTopRefreshBlock(refreshBlock: dispatch_block_t!) -> Void {
         self.topRefreshBlock = refreshBlock
         self.showTopRefresh = true
     }
 
-    func startTopRefreshAnimating() {
+    public func startTopRefreshAnimating() {
 
         self.topRefreshState = AHTopRefreshViewState.Loading
 
@@ -200,7 +200,7 @@ extension UIScrollView {
         self.topRefreshBlock()
     }
 
-    func stopTopRefreshAnimating() {
+    public func stopTopRefreshAnimating() {
 
         // 延迟1.0秒
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1.0 * Double(NSEC_PER_SEC)))
@@ -293,7 +293,7 @@ extension UIScrollView {
 }
 
 // MARK: - 上拉刷新扩展
-extension UIScrollView {
+public extension UIScrollView {
 
     /**
      * 下拉刷新的各个状态的View
@@ -354,7 +354,7 @@ extension UIScrollView {
         }
     }
 
-    var bottomRefreshMode: AHBottomRefreshMode! {
+    public var bottomRefreshMode: AHBottomRefreshMode! {
         get {
             if let mode = objc_getAssociatedObject(self, &kPointerBottomRefreshMode) as? NSNumber {
                 return AHBottomRefreshMode(rawValue: mode.integerValue)
@@ -370,7 +370,7 @@ extension UIScrollView {
     /**
      * 是否要显示下拉刷新
      */
-    var showBottomRefresh: Bool {
+    public var showBottomRefresh: Bool {
         get {
             var number = (objc_getAssociatedObject(self, &kPointerShowBottomRefresh) as? NSNumber)
             if let obj = number {
@@ -410,7 +410,7 @@ extension UIScrollView {
         }
     }
 
-    func setCustomViewForBottomRefreshState(view: UIView!, forState state: AHBottomRefreshViewState) {
+    public func setCustomViewForBottomRefreshState(view: UIView!, forState state: AHBottomRefreshViewState) {
         let customViewArray = self.bottomRefreshViewsForState
         
         view.clipsToBounds = true
@@ -420,7 +420,7 @@ extension UIScrollView {
     /**
      * 添加上拉拉刷新的block
      */
-    func addBottomRefreshWithBlock(refreshBlock: dispatch_block_t!) {
+    public func addBottomRefreshWithBlock(refreshBlock: dispatch_block_t!) {
         self.bottomRefreshBlock = refreshBlock
         self.showBottomRefresh = true
     }
@@ -428,7 +428,7 @@ extension UIScrollView {
     /**
      重置无更多数据的状态
      */
-    func bottomRefreshResetNoMoreDataState() {
+    public func bottomRefreshResetNoMoreDataState() {
         if self.bottomRefreshState == AHBottomRefreshViewState.NoMore {
             if let customView = self.currentBottomRefreshCustomView {
                 customView.removeFromSuperview()
@@ -448,13 +448,13 @@ extension UIScrollView {
         self.bottomRefreshMode = AHBottomRefreshMode.AutoRefresh
     }
 
-    func startBottomRefresh() {
+    public func startBottomRefresh() {
         if self.bottomRefreshState != AHBottomRefreshViewState.Loading {
             self.performBottomRefresh()
         }
     }
 
-    func stopBottomRefresh() {
+    public func stopBottomRefresh() {
 
         // 延迟0.5秒
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
@@ -482,7 +482,7 @@ extension UIScrollView {
         }
     }
 
-    func stopBottomRefreshWithError() {
+    public func stopBottomRefreshWithError() {
         // 延迟0.5秒
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
         dispatch_after(delayTime, dispatch_get_main_queue()) {
@@ -521,7 +521,7 @@ extension UIScrollView {
     /**
      没有更多数据
      */
-    func stopBottomRefreshWithNoMoreState() {
+    public func stopBottomRefreshWithNoMoreState() {
 
         // 延迟0.5秒
         let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
@@ -629,7 +629,7 @@ extension UIScrollView {
     /**
      触发上拉刷新
      */
-    func performBottomRefresh() {
+    public func performBottomRefresh() {
         if let customView = self.currentBottomRefreshCustomView {
             customView.removeFromSuperview()
             self.currentBottomRefreshCustomView = nil
@@ -660,6 +660,8 @@ extension UIScrollView {
         return max(self.contentSize.height, self.bounds.height)
     }
 }
+
+// MARK -- 拖拉的处理
 
 extension UIScrollView {
 

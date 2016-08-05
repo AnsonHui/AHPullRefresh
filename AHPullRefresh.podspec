@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "AHPullRefresh"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "扩展UIScrollView，支持下拉刷新和上拉刷新"
   s.homepage     = "https://github.com/AnsonHui/AHPullRefresh"
   s.license      = "MIT"
