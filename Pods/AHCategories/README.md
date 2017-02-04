@@ -6,7 +6,7 @@ Tools for settings UIView's frame and make UIColor with Hexadecimal values.
 
 ```swift
 // layout
-let label = UILabel(frame: CGRectMake(40, 40, 200, 30))
+let label = UILabel(frame: CGRect(x: 40, y: 40, width: 200, height: 30))
 label.backgroundColor = UIColor(argb: 0xff343434) // ARGB
 label.ahLeft = 10
 label.ahTop = 50

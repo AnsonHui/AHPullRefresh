@@ -1,0 +1,6 @@
+framework module AHAutoLayout_Swift {
+  umbrella header "AHAutoLayout-Swift-umbrella.h"
+
+  export *
+  module * { export * }
+}

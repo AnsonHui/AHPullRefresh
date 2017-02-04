@@ -12,7 +12,7 @@ public extension UIView {
 
     public var ahLeft: CGFloat {
         get {
-            return CGRectGetMinX(self.frame)
+            return self.frame.minX
         }
         set {
             var origin = self.frame.origin
@@ -23,7 +23,7 @@ public extension UIView {
 
     public var ahRight: CGFloat {
         get {
-            return CGRectGetMaxX(self.frame)
+            return self.frame.maxX
         }
         set {
             var origin = self.frame.origin
@@ -34,7 +34,7 @@ public extension UIView {
 
     public var ahTop: CGFloat {
         get {
-            return CGRectGetMinY(self.frame)
+            return self.frame.minY
         }
         set {
             var origin = self.frame.origin
@@ -45,7 +45,7 @@ public extension UIView {
 
     public var ahBottom: CGFloat {
         get {
-            return CGRectGetMaxY(self.frame)
+            return self.frame.maxY
         }
         set {
             var origin = self.frame.origin
@@ -99,7 +99,7 @@ public extension UIView {
             return self.bounds.size
         }
         set {
-            self.frame.size = CGSizeMake(newValue.width, newValue.height)
+            self.frame.size = CGSize(width: newValue.width, height: newValue.height)
         }
     }
 
@@ -108,7 +108,7 @@ public extension UIView {
         superView = self.superview
         var rect = self.frame
         while (superView?.superview != nil) {
-            rect = superView!.convertRect(rect, toView: superView!.superview!)
+            rect = superView!.convert(rect, to: superView!.superview!)
             superView = superView!.superview
         }
         return rect

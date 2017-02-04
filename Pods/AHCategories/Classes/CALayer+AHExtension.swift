@@ -12,7 +12,7 @@ public extension CALayer {
 
     var ahLeft: CGFloat {
         get {
-            return CGRectGetMinX(self.frame)
+            return self.frame.minX
         }
         set {
             var origin = self.frame.origin
@@ -23,7 +23,7 @@ public extension CALayer {
 
     var ahRight: CGFloat {
         get {
-            return CGRectGetMaxX(self.frame)
+            return self.frame.maxX
         }
         set {
             var origin = self.frame.origin
@@ -34,7 +34,7 @@ public extension CALayer {
 
     var ahTop: CGFloat {
         get {
-            return CGRectGetMinY(self.frame)
+            return self.frame.minY
         }
         set {
             var origin = self.frame.origin
@@ -45,7 +45,7 @@ public extension CALayer {
 
     var ahBottom: CGFloat {
         get {
-            return CGRectGetMaxY(self.frame)
+            return self.frame.maxY
         }
         set {
             var origin = self.frame.origin
@@ -103,7 +103,7 @@ public extension CALayer {
             return self.bounds.size
         }
         set {
-            self.frame.size = CGSizeMake(newValue.width, newValue.height)
+            self.frame.size = CGSize(width: newValue.width, height: newValue.height)
         }
     }
 

@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import AutoLayoutDSL_Swift
+import AHAutoLayout_Swift
 
 class PullDownRefreshView: UIView {
 
@@ -17,15 +17,15 @@ class PullDownRefreshView: UIView {
     private var titles: [String]?
 
     init(titles: [String], images: [UIImage]?) {
-        super.init(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 70))
+        super.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 70))
 
         self.titles = titles
 
         // 标题
         self.titleLabel = UILabel()
-        self.titleLabel.backgroundColor = UIColor.clearColor()
-        self.titleLabel.textColor = UIColor.grayColor()
-        self.titleLabel.font = UIFont.systemFontOfSize(12.0)
+        self.titleLabel.backgroundColor = UIColor.clear
+        self.titleLabel.textColor = UIColor.gray
+        self.titleLabel.font = UIFont.systemFont(ofSize: 12.0)
         self.titleLabel.text = titles.first
         self.titleLabel.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(self.titleLabel)
@@ -50,7 +50,7 @@ class PullDownRefreshView: UIView {
 
         if let titles = self.titles {
             if titles.count > 1 {
-                let index = random() % titles.count
+                let index = Int(arc4random()) % titles.count
                 if index < titles.count {
                     self.titleLabel.text = titles[index]
                 }

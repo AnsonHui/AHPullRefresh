@@ -10,15 +10,15 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    private var datas = [0, 1, 2, 3, 4, 5]
-    private var tableView: UITableView!
+    fileprivate var datas = [0, 1, 2, 3, 4, 5]
+    fileprivate var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
 
-        self.tableView = UITableView(frame: CGRectMake(0, 20, self.view.bounds.size.width, self.view.bounds.size.height - 20))
-        self.tableView.registerClass(UITableViewCell.classForCoder(), forCellReuseIdentifier: "UITableViewCellReuseIdentifier")
+        self.tableView = UITableView(frame: CGRect(x: 0, y: 20, width: self.view.bounds.size.width, height: self.view.bounds.size.height - 20))
+        self.tableView.register(UITableViewCell.classForCoder(), forCellReuseIdentifier: "UITableViewCellReuseIdentifier")
         self.tableView.delegate = self
         self.tableView.dataSource = self
         self.tableView.tableFooterView = UIView()
@@ -55,9 +55,9 @@ extension ViewController {
 
         // 自定义上拉显示的View
         let noMorePullUpRefreshView = PullUpRefreshView(titles: ["暂时看完啦！你不加点料吗？"], images: [UIImage(named: "loading_01")!])
-        noMorePullUpRefreshView.userInteractionEnabled = true
+        noMorePullUpRefreshView.isUserInteractionEnabled = true
         let errorPullUpRefreshView = PullUpRefreshView(titles: ["只是加载失败而已，点一下这里就好"], images: nil)
-        errorPullUpRefreshView.userInteractionEnabled = true
+        errorPullUpRefreshView.isUserInteractionEnabled = true
         let bottomRefreshView = PullUpRefreshView(titles: ["本宝宝在拼命加载中..."],
                                                   images: [
                                                     UIImage(named: "loading_01")!,
@@ -70,37 +70,37 @@ extension ViewController {
                                                     UIImage(named: "loading_08")!])
 
         // 下拉刷新
-        self.tableView.setCustomViewForTopRefreshState(stopView, forState: AHTopRefreshViewState.Stopped) // 继续下拉
-        self.tableView.setCustomViewForTopRefreshState(triggeredView, forState: AHTopRefreshViewState.Triggered) // 松手刷新
-        self.tableView.setCustomViewForTopRefreshState(refreshAnimationView, forState: AHTopRefreshViewState.Loading) // 加载中
+        self.tableView.setCustomViewForTopRefreshState(view: stopView, forState: AHTopRefreshViewState.Stopped) // 继续下拉
+        self.tableView.setCustomViewForTopRefreshState(view: triggeredView, forState: AHTopRefreshViewState.Triggered) // 松手刷新
+        self.tableView.setCustomViewForTopRefreshState(view: refreshAnimationView, forState: AHTopRefreshViewState.Loading) // 加载中
 
-        self.tableView.addTopRefreshBlock({
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(3 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
+        self.tableView.addTopRefreshBlock(refreshBlock: {
+            let delayTime = DispatchTime.now() + 3
+            DispatchQueue.main.asyncAfter(deadline: delayTime, execute: {
                 let top = self.datas.first!
                 for i in 1 ..< 3 {
-                    self.datas.insert(top - i, atIndex: 0)
+                    self.datas.insert(top - i, at: 0)
                 }
                 self.tableView.reloadData()
                 self.tableView.stopTopRefreshAnimating()
-            }
+            })
         })
 
         // 上拉刷新
-        self.tableView.setCustomViewForBottomRefreshState(noMorePullUpRefreshView, forState: AHBottomRefreshViewState.NoMore) // 没有更多数据
-        self.tableView.setCustomViewForBottomRefreshState(bottomRefreshView, forState: AHBottomRefreshViewState.Loading) // 加载中
-        self.tableView.setCustomViewForBottomRefreshState(errorPullUpRefreshView, forState: AHBottomRefreshViewState.Error) // 加载失败
+        self.tableView.setCustomViewForBottomRefreshState(view: noMorePullUpRefreshView, forState: AHBottomRefreshViewState.NoMore) // 没有更多数据
+        self.tableView.setCustomViewForBottomRefreshState(view: bottomRefreshView, forState: AHBottomRefreshViewState.Loading) // 加载中
+        self.tableView.setCustomViewForBottomRefreshState(view: errorPullUpRefreshView, forState: AHBottomRefreshViewState.Error) // 加载失败
 
-        self.tableView.addBottomRefreshWithBlock({
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(3 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
+        self.tableView.addBottomRefreshWithBlock(refreshBlock: {
+            let delayTime = DispatchTime.now() + 3
+            DispatchQueue.main.asyncAfter(deadline: delayTime, execute: {
                 let count = self.datas.count
                 for i in count ..< count + 3 {
                     self.datas.append(i)
                 }
                 self.tableView.reloadData()
                 self.tableView.stopBottomRefresh()
-            }
+            })
         })
     }
 }
@@ -109,16 +109,16 @@ extension ViewController {
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.datas.count
     }
 
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCellWithIdentifier("UITableViewCellReuseIdentifier") {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCellReuseIdentifier") {
             cell.textLabel?.text = "\(datas[indexPath.row])"
             return cell
         } else {

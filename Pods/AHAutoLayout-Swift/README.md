@@ -1,5 +1,5 @@
-# AutoLayoutDSL-Swift
-AutoLayoutDSL-Swift is a straightforward swift DSL/extension for more convinient auto layout management
+# AHAutoLayout-Swift
+AHAutoLayout-Swift is a straightforward swift for more convinient auto layout management
 
 ## Features
 
@@ -23,7 +23,7 @@ AutoLayoutDSL-Swift is a straightforward swift DSL/extension for more convinient
 
 > **Embedded frameworks require a minimum deployment target of iOS 8
 >
-> To use AutoLayoutDSL-Swift with a project targeting iOS 7, you must include all Swift files located inside the `Source` directory directly in your project. See the ['Source File'](#source-file) section for additional instructions.
+> To use AHAutoLayout-Swift with a project targeting iOS 7, you must include all Swift files located inside the `Source` directory directly in your project. See the ['Source File'](#source-file) section for additional instructions.
 
 ### CocoaPods
 
@@ -35,14 +35,14 @@ CocoaPods 0.36 adds supports for Swift and embedded frameworks. You can install 
 $ gem install cocoapods
 ```
 
-To integrate AutoLayoutDSL-Swift into your Xcode project using CocoaPods, specify it in your `Podfile`:
+To integrate AHAutoLayout-Swift into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.0'
 use_frameworks!
 
-pod 'AutoLayoutDSL-Swift', '~> 1.0.0'
+pod 'AHAutoLayout-Swift', '~> 1.0.0'
 ```
 
 Then, run the following command:
@@ -58,7 +58,7 @@ $ pod install
 ### Create an NSLayoutConstraints
 
 ```swift
-import AutoLayoutDSL-Swift
+import AHAutoLayout-Swift
 
 view.left == parentView.left + 10
 // is equal to 
@@ -111,16 +111,13 @@ self.view => constraint // => doesn't change priority
 
 ## FAQ
 
-### When should I use AutoLayoutDSL-Swift?
+### When should I use AHAutoLayout-Swift?
 
-If you are writting iOS project with Swift, and you want to create UI by manually writting code instead of using Storyboar, but you still want to take the advantage of AutoLayout to save you do the math for calculating the frame, and use automatically handling dynamic content, AutoLayoutDSL-Swift may be one of your choice to save a lot of lines creating instance of NSLayoutConstraint, also let the code to be more cleaner and more straightforward.
+If you are writting iOS project with Swift, and you want to create UI by manually writting code instead of using Storyboar, but you still want to take the advantage of AutoLayout to save you do the math for calculating the frame, and use automatically handling dynamic content, AHAutoLayout-Swift may be one of your choice to save a lot of lines creating instance of NSLayoutConstraint, also let the code to be more cleaner and more straightforward.
 
 * * *
 
-## Acknowledgement
-
-AutoLayoutDSL-Swift is inspired by [AutoLayoutDSL](http://github.com/humblehacker/AutoLayoutDSL), yet [AutoLayoutDSL](http://github.com/humblehacker/AutoLayoutDSL) is written in Objective C++.
 
 ## License
 
-AutoLayoutDSL-Swift is released under the MIT license. See LICENSE for details.
+AHAutoLayout-Swift is released under the MIT license. See LICENSE for details.

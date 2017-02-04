@@ -28,7 +28,7 @@ private var kPointerBottomRefreshState = 14
 private var kPointerBottomRefreshCurrentCustomView = 15
 private var kPointerBottomRefreshMode = 16 // 手动上拉刷新 OR 自动上拉刷新
 
-private var kTimeEndRefreshAnimation: NSTimeInterval = 0.3
+private var kTimeEndRefreshAnimation: TimeInterval = 0.3
 
 // 配置
 public class AHPullRefreshConfig {
@@ -40,7 +40,7 @@ public class AHPullRefreshConfig {
 }
 
 private class BlockObject {
-    var block: dispatch_block_t!
+    var block: (() -> Void)!
 }
 
 // 下拉刷新状态
@@ -111,14 +111,14 @@ public extension UIScrollView {
             let pullStateNumber = objc_getAssociatedObject(self, &kPointerTopRefreshState) as? NSNumber
             
             if let pullState = pullStateNumber {
-                return AHTopRefreshViewState(rawValue: pullState.integerValue)
+                return AHTopRefreshViewState(rawValue: pullState.intValue)
             } else {
-                objc_setAssociatedObject(self, &kPointerTopRefreshState, NSNumber(integer: AHTopRefreshViewState.Stopped.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, &kPointerTopRefreshState, NSNumber(value: AHTopRefreshViewState.Stopped.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
                 return AHTopRefreshViewState.Stopped
             }
         }
         set {
-            objc_setAssociatedObject(self, &kPointerTopRefreshState, NSNumber(integer: newValue.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &kPointerTopRefreshState, NSNumber(value: newValue.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
         }
     }
 
@@ -131,13 +131,13 @@ public extension UIScrollView {
             if let obj = number {
                 return obj.boolValue
             } else {
-                number = NSNumber(bool: false)
+                number = NSNumber(value: false)
                 objc_setAssociatedObject(self, &kPointerShowTopRefresh, number, objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
                 return false
             }
         }
         set {
-            objc_setAssociatedObject(self, &kPointerShowTopRefresh, NSNumber(bool: newValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &kPointerShowTopRefresh, NSNumber(value: newValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
 
             if newValue {
                 self.addObserver()
@@ -150,7 +150,7 @@ public extension UIScrollView {
     /**
      * 刷新的回调
      */
-    private var topRefreshBlock: dispatch_block_t! {
+    private var topRefreshBlock: (() -> Void)! {
         get {
             if let blockObj = objc_getAssociatedObject(self, &kPointerTopRefreshBlock) as? BlockObject {
                 return blockObj.block
@@ -169,13 +169,14 @@ public extension UIScrollView {
         let customViewArray = self.topRefreshViewsForState
         
         view.clipsToBounds = true
-        customViewArray.setObject(view, forKey: "\(state.rawValue)")
+        let key: NSString = "\(state.rawValue)" as NSString
+        customViewArray?.setObject(view, forKey: key)
     }
 
     /**
      * 添加下拉刷新的block
      */
-    public func addTopRefreshBlock(refreshBlock: dispatch_block_t!) -> Void {
+    public func addTopRefreshBlock(refreshBlock: (() -> Void)!) -> Void {
         self.topRefreshBlock = refreshBlock
         self.showTopRefresh = true
     }
@@ -190,12 +191,12 @@ public extension UIScrollView {
             self.currentTopRefreshCustomView = nil
         }
         // 更新View
-        if let currentView = self.topRefreshViewsForState.objectForKey("\(AHTopRefreshViewState.Loading.rawValue)") as? UIView {
+        if let currentView = self.topRefreshViewsForState.object(forKey: "\(AHTopRefreshViewState.Loading.rawValue)") as? UIView {
             self.addSubview(currentView)
             self.currentTopRefreshCustomView = currentView
         }
 
-        self.setContentOffset(CGPointMake(0, -AHPullRefreshConfig.AHTopRefreshViewHeight - self.contentInset.top - 10), animated: true)
+        self.setContentOffset(CGPoint(x: 0, y: -AHPullRefreshConfig.AHTopRefreshViewHeight - self.contentInset.top - 10), animated: true)
 
         self.topRefreshBlock()
     }
@@ -203,14 +204,15 @@ public extension UIScrollView {
     public func stopTopRefreshAnimating() {
 
         // 延迟1.0秒
-        let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1.0 * Double(NSEC_PER_SEC)))
-        dispatch_after(delayTime, dispatch_get_main_queue()) {
+        let delayTime = DispatchTime.now() + 1
+        DispatchQueue.main.asyncAfter(deadline: delayTime) { 
+
             self.topRefreshState = AHTopRefreshViewState.None
 
-            UIView.animateWithDuration(0.3, animations: { () -> Void in
+            UIView.animate(withDuration: 0.3, animations: { () -> Void in
                 
                 if self.contentOffset.y + self.contentInset.top < 0 {
-                    self.contentOffset = CGPointMake(0, -self.contentInset.top)
+                    self.contentOffset = CGPoint(x: 0, y: -self.contentInset.top)
                 }
 
             }) { (completed) -> Void in
@@ -226,7 +228,7 @@ public extension UIScrollView {
         }
     }
 
-    private func updateTopRefreshWithContentOffset(scrollViewContentOffset: CGPoint) {
+    fileprivate func updateTopRefreshWithContentOffset(scrollViewContentOffset: CGPoint) {
 
         if self.topRefreshState == AHTopRefreshViewState.None {
             return
@@ -243,18 +245,18 @@ public extension UIScrollView {
             return
         }
 
-        var pullState = self.topRefreshState
+        var pullState = self.topRefreshState!
 
         if pullState.rawValue == AHTopRefreshViewState.Loading.rawValue { // 目前正在加载中
-            if contentOffset.y > -AHPullRefreshConfig.AHTopRefreshViewHeight && !self.dragging {
+            if contentOffset.y > -AHPullRefreshConfig.AHTopRefreshViewHeight && !self.isDragging {
                 contentOffset.y = -AHPullRefreshConfig.AHTopRefreshViewHeight
-                self.setContentOffset(CGPointMake(0, -AHPullRefreshConfig.AHTopRefreshViewHeight - self.contentInset.top), animated: false)
+                self.setContentOffset(CGPoint(x: 0, y: -AHPullRefreshConfig.AHTopRefreshViewHeight - self.contentInset.top), animated: false)
             }
 
             return
         }
 
-        if self.dragging { // 正在拖拽
+        if self.isDragging { // 正在拖拽
             if contentOffset.y < -AHPullRefreshConfig.AHTopRefreshViewHeight { // 提示放手刷新
                 pullState = AHTopRefreshViewState.Triggered
             } else { // 普通
@@ -283,7 +285,7 @@ public extension UIScrollView {
 
         // 更新显示的view
         if self.currentTopRefreshCustomView == nil {
-            if let currentView = self.topRefreshViewsForState.objectForKey("\(pullState.rawValue)") as? UIView {
+            if let currentView = self.topRefreshViewsForState.object(forKey: "\(pullState.rawValue)") as? UIView {
                 self.addSubview(currentView)
                 self.currentTopRefreshCustomView = currentView
                 self.topRefreshState = pullState
@@ -325,7 +327,7 @@ public extension UIScrollView {
         }
         set {
             if let customView = newValue {
-                if customView.userInteractionEnabled {
+                if customView.isUserInteractionEnabled {
                     if customView.gestureRecognizers == nil || customView.gestureRecognizers!.count == 0 {
                         customView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.performBottomRefresh)))
                     }
@@ -343,21 +345,21 @@ public extension UIScrollView {
             let pullStateNumber = objc_getAssociatedObject(self, &kPointerBottomRefreshState) as? NSNumber
             
             if let pullState = pullStateNumber {
-                return AHBottomRefreshViewState(rawValue: pullState.integerValue)
+                return AHBottomRefreshViewState(rawValue: pullState.intValue)
             } else {
-                objc_setAssociatedObject(self, &kPointerBottomRefreshState, NSNumber(integer: AHBottomRefreshViewState.None.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, &kPointerBottomRefreshState, NSNumber(value: AHBottomRefreshViewState.None.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
                 return AHBottomRefreshViewState.None
             }
         }
         set {
-            objc_setAssociatedObject(self, &kPointerBottomRefreshState, NSNumber(integer: newValue.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &kPointerBottomRefreshState, NSNumber(value: newValue.rawValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
         }
     }
 
     public var bottomRefreshMode: AHBottomRefreshMode! {
         get {
             if let mode = objc_getAssociatedObject(self, &kPointerBottomRefreshMode) as? NSNumber {
-                return AHBottomRefreshMode(rawValue: mode.integerValue)
+                return AHBottomRefreshMode(rawValue: mode.intValue)
             } else {
                 return AHBottomRefreshMode.AutoRefresh
             }
@@ -376,13 +378,13 @@ public extension UIScrollView {
             if let obj = number {
                 return obj.boolValue
             } else {
-                number = NSNumber(bool: false)
+                number = NSNumber(value: false)
                 objc_setAssociatedObject(self, &kPointerShowBottomRefresh, number, objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
                 return false
             }
         }
         set {
-            objc_setAssociatedObject(self, &kPointerShowBottomRefresh, NSNumber(bool: newValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(self, &kPointerShowBottomRefresh, NSNumber(value: newValue), objc_AssociationPolicy.OBJC_ASSOCIATION_ASSIGN)
             
             if newValue {
                 self.addObserver()
@@ -395,7 +397,7 @@ public extension UIScrollView {
     /**
      * 刷新的回调
      */
-    private var bottomRefreshBlock: dispatch_block_t? {
+    private var bottomRefreshBlock: (() -> Void)? {
         get {
             if let blockObj = objc_getAssociatedObject(self, &kPointerBottomRefreshBlock) as? BlockObject {
                 return blockObj.block
@@ -414,13 +416,13 @@ public extension UIScrollView {
         let customViewArray = self.bottomRefreshViewsForState
         
         view.clipsToBounds = true
-        customViewArray.setObject(view, forKey: "\(state.rawValue)")
+        customViewArray?.setObject(view, forKey: "\(state.rawValue)" as NSString)
     }
 
     /**
      * 添加上拉拉刷新的block
      */
-    public func addBottomRefreshWithBlock(refreshBlock: dispatch_block_t!) {
+    public func addBottomRefreshWithBlock(refreshBlock: (() -> Void)!) {
         self.bottomRefreshBlock = refreshBlock
         self.showBottomRefresh = true
     }
@@ -457,12 +459,12 @@ public extension UIScrollView {
     public func stopBottomRefresh() {
 
         // 延迟0.5秒
-        let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-        dispatch_after(delayTime, dispatch_get_main_queue()) {
+        let delayTime = DispatchTime.now() + 0.5
+        DispatchQueue.main.asyncAfter(deadline: delayTime) {
 
             // 延时
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
+            let delayTime = DispatchTime.now() + 0.5
+            DispatchQueue.main.asyncAfter(deadline: delayTime) {
                 self.bottomRefreshState = AHBottomRefreshViewState.None
             }
 
@@ -473,7 +475,7 @@ public extension UIScrollView {
 
             // 设置底部的inset
             if self.contentInset.bottom > 0 {
-                UIView.animateWithDuration(kTimeEndRefreshAnimation, animations: {
+                UIView.animate(withDuration: kTimeEndRefreshAnimation, animations: {
                     var inset = self.contentInset
                     inset.bottom = 0
                     self.contentInset = inset
@@ -484,12 +486,12 @@ public extension UIScrollView {
 
     public func stopBottomRefreshWithError() {
         // 延迟0.5秒
-        let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-        dispatch_after(delayTime, dispatch_get_main_queue()) {
+        let delayTime = DispatchTime.now() + 0.5
+        DispatchQueue.main.asyncAfter(deadline: delayTime) {
 
             // 延时
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
+            let delayTime = DispatchTime.now() + 0.5
+            DispatchQueue.main.asyncAfter(deadline: delayTime) {
                 self.bottomRefreshState = AHBottomRefreshViewState.None
             }
 
@@ -498,14 +500,14 @@ public extension UIScrollView {
                 self.currentBottomRefreshCustomView = nil
             }
 
-            if let customView = self.bottomRefreshViewsForState.objectForKey("\(AHBottomRefreshViewState.Error.rawValue)") as? UIView { // 有自定义View
+            if let customView = self.bottomRefreshViewsForState.object(forKey: "\(AHBottomRefreshViewState.Error.rawValue)") as? UIView { // 有自定义View
                 customView.ahTop = self.contentBottomTop()
-                self.insertSubview(customView, atIndex: 0)
+                self.insertSubview(customView, at: 0)
                 self.currentBottomRefreshCustomView = customView
             } else { // 无自定义View
                 // 设置底部的inset
                 if self.contentInset.bottom > 0 {
-                    UIView.animateWithDuration(kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.CurveLinear, animations: {
+                    UIView.animate(withDuration: kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.curveLinear, animations: {
 
                         var inset = self.contentInset
                         inset.bottom = 0
@@ -524,29 +526,29 @@ public extension UIScrollView {
     public func stopBottomRefreshWithNoMoreState() {
 
         // 延迟0.5秒
-        let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-        dispatch_after(delayTime, dispatch_get_main_queue()) {
+        let delayTime = DispatchTime.now() + 0.5
+        DispatchQueue.main.asyncAfter(deadline: delayTime) {
 
             if let customView = self.currentBottomRefreshCustomView {
                 customView.removeFromSuperview()
                 self.currentBottomRefreshCustomView = nil
             }
 
-            if let customView = self.bottomRefreshViewsForState.objectForKey("\(AHBottomRefreshViewState.NoMore.rawValue)") as? UIView { // 有自定义View
+            if let customView = self.bottomRefreshViewsForState.object(forKey: "\(AHBottomRefreshViewState.NoMore.rawValue)") as? UIView { // 有自定义View
 
                 // 延时
-                let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.5 * Double(NSEC_PER_SEC)))
-                dispatch_after(delayTime, dispatch_get_main_queue()) {
+                let delayTime = DispatchTime.now() + 0.5
+                DispatchQueue.main.asyncAfter(deadline: delayTime) {
                     self.bottomRefreshState = AHBottomRefreshViewState.NoMore
                 }
 
                 customView.ahTop = self.contentBottomTop()
-                self.insertSubview(customView, atIndex: 0)
+                self.insertSubview(customView, at: 0)
                 self.currentBottomRefreshCustomView = customView
 
                 // 设置底部的inset
                 if self.contentInset.bottom > 0 {
-                    UIView.animateWithDuration(kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.CurveLinear, animations: {
+                    UIView.animate(withDuration: kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.curveLinear, animations: {
 
                         var inset = self.contentInset
                         inset.bottom = AHPullRefreshConfig.AHBottomRefreshViewHeight
@@ -559,7 +561,7 @@ public extension UIScrollView {
             } else {
                 // 设置底部的inset
                 if self.contentInset.bottom > 0 {
-                    UIView.animateWithDuration(kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.CurveLinear, animations: {
+                    UIView.animate(withDuration: kTimeEndRefreshAnimation, delay: 0.5, options: UIViewAnimationOptions.curveLinear, animations: {
 
                         var inset = self.contentInset
                         inset.bottom = 0
@@ -575,7 +577,7 @@ public extension UIScrollView {
         }
     }
 
-    private func updateBottomRefreshWithContentOffset(scrollViewContentOffset: CGPoint) {
+    fileprivate func updateBottomRefreshWithContentOffset(scrollViewContentOffset: CGPoint) {
 
         let state = self.bottomRefreshState
 
@@ -589,7 +591,7 @@ public extension UIScrollView {
         }
 
         // 预加载 距离底部距离小于200 往前行进中 数据满屏 列表初始化完毕 自动加载模式可用
-        if position > -200 && self.dragging && self.contentSize.height > self.bounds.height && self.bounds.height > 0 && self.bottomRefreshMode == AHBottomRefreshMode.AutoRefresh {
+        if position > -200 && self.isDragging && self.contentSize.height > self.bounds.height && self.bounds.height > 0 && self.bottomRefreshMode == AHBottomRefreshMode.AutoRefresh {
             self.performBottomRefresh()
             return
         }
@@ -600,22 +602,22 @@ public extension UIScrollView {
                 customView.removeFromSuperview()
                 self.currentBottomRefreshCustomView = nil
             }
-            if let customView = self.bottomRefreshViewsForState.objectForKey("\(AHBottomRefreshViewState.Stopped.rawValue)") as? UIView {
+            if let customView = self.bottomRefreshViewsForState.object(forKey: "\(AHBottomRefreshViewState.Stopped.rawValue)") as? UIView {
                 self.currentBottomRefreshCustomView = customView
                 customView.ahTop = self.contentBottomTop()
-                self.insertSubview(customView, atIndex: 0)
+                self.insertSubview(customView, at: 0)
             }
 
-        case AHPullRefreshConfig.AHBottomRefreshViewHeight ..< AHPullRefreshConfig.AHBottomRefreshViewHeight + CGFloat.max: // 超过临界值
+        case AHPullRefreshConfig.AHBottomRefreshViewHeight ..< AHPullRefreshConfig.AHBottomRefreshViewHeight + CGFloat.greatestFiniteMagnitude: // 超过临界值
             if let customView = self.currentBottomRefreshCustomView {
                 customView.removeFromSuperview()
                 self.currentBottomRefreshCustomView = nil
             }
-            if self.dragging { // 拖拽中
-                if let customView = self.bottomRefreshViewsForState.objectForKey("\(AHBottomRefreshViewState.Triggered.rawValue)") as? UIView { // 提示松手
+            if self.isDragging { // 拖拽中
+                if let customView = self.bottomRefreshViewsForState.object(forKey: "\(AHBottomRefreshViewState.Triggered.rawValue)") as? UIView { // 提示松手
                     self.currentBottomRefreshCustomView = customView
                     customView.ahTop = self.contentBottomTop()
-                    self.insertSubview(customView, atIndex: 0)
+                    self.insertSubview(customView, at: 0)
                 }
             } else { // 松手
                 self.performBottomRefresh()
@@ -635,11 +637,11 @@ public extension UIScrollView {
             self.currentBottomRefreshCustomView = nil
         }
 
-        if let customView = self.bottomRefreshViewsForState.objectForKey("\(AHBottomRefreshViewState.Loading.rawValue)") as? UIView { // 加载中
+        if let customView = self.bottomRefreshViewsForState.object(forKey: "\(AHBottomRefreshViewState.Loading.rawValue)") as? UIView { // 加载中
             self.bottomRefreshState = AHBottomRefreshViewState.Loading
             self.currentBottomRefreshCustomView = customView
             customView.ahTop = self.contentBottomTop()
-            self.insertSubview(customView, atIndex: 0)
+            self.insertSubview(customView, at: 0)
         }
 
         // 设置底部的inset
@@ -650,7 +652,7 @@ public extension UIScrollView {
         self.bottomRefreshBlock?() // 刷新
     }
 
-    private func updateBottomRefreshWithContentSize(contentSize: CGSize) {
+    fileprivate func updateBottomRefreshWithContentSize(contentSize: CGSize) {
         if let customView = self.currentBottomRefreshCustomView {
             customView.ahTop = max(self.contentSize.height, self.bounds.height)
         }
@@ -668,18 +670,18 @@ extension UIScrollView {
     /**
      * 添加监听
      */
-    private func addObserver() {
+    fileprivate func addObserver() {
         if !self.addedObserver {
             self.addedObserver = true
-            self.addObserver(self, forKeyPath: "contentOffset", options: NSKeyValueObservingOptions.New, context: &kPointerRefreshContentOffsetChangedContext)
-            self.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions.New, context: &kPointerRefreshContentSizeChangedContext)
+            self.addObserver(self, forKeyPath: "contentOffset", options: NSKeyValueObservingOptions.new, context: &kPointerRefreshContentOffsetChangedContext)
+            self.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions.new, context: &kPointerRefreshContentSizeChangedContext)
         }
     }
 
     /**
      * 移除监听
      */
-    private func removeObserver() {
+    fileprivate func removeObserver() {
         self.removeObserver(self, forKeyPath: "contentOffset", context: &kPointerRefreshContentOffsetChangedContext)
         self.removeObserver(self, forKeyPath: "contentSize", context: &kPointerRefreshContentSizeChangedContext)
         self.addedObserver = false
@@ -698,32 +700,31 @@ extension UIScrollView {
             }
         }
         set {
-            let boolNumber = NSNumber(bool: newValue)
+            let boolNumber = NSNumber(value: newValue)
             objc_setAssociatedObject(self, &kPointerRefreshContentChangedContextExist, boolNumber, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN)
         }
     }
 
-    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
 
         if context == &kPointerRefreshContentOffsetChangedContext {
 
-            guard let contentOffset = change?[NSKeyValueChangeNewKey]?.CGPointValue else {
+            guard let contentOffset = change?[NSKeyValueChangeKey.newKey] as? CGPoint else {
                 return
             }
 
             if self.showTopRefresh { // 集成下拉刷新
-                self.updateTopRefreshWithContentOffset(contentOffset)
-                
+                self.updateTopRefreshWithContentOffset(scrollViewContentOffset: contentOffset)
             }
 
             if self.showBottomRefresh { // 集成上拉刷新
-                self.updateBottomRefreshWithContentOffset(contentOffset)
+                self.updateBottomRefreshWithContentOffset(scrollViewContentOffset: contentOffset)
             }
         } else if context == &kPointerRefreshContentSizeChangedContext {
 
             if self.showBottomRefresh {
-                if let contentSize = change?[NSKeyValueChangeNewKey]?.CGSizeValue() {
-                    self.updateBottomRefreshWithContentSize(contentSize)
+                if let contentSize = change?[NSKeyValueChangeKey.newKey] as? CGSize {
+                    self.updateBottomRefreshWithContentSize(contentSize: contentSize)
                 }
             }
         }

@@ -2,7 +2,11 @@ source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.0'
 use_frameworks!
 
-pod 'AutoLayoutDSL-Swift', '~> 1.0.1'
-pod ‘AHCategories'
+swift_version = "3.0"
 
-link_with "AHPullRefresh"
+target ‘AHPullRefresh’ do
+
+pod 'AHAutoLayout-Swift', '~> 1.0.0'
+pod 'AHCategories', '~> 1.0.1'
+
+end
